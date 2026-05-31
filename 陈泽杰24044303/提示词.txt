@@ -1,0 +1,1 @@
+请创建一个完整的 HTML 单文件，展示 Ajax 异步请求的两种实现方式对比：纯 JavaScript XMLHttpRequest 和 jQuery Ajax。
