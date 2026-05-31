@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纯 Ajax 异步请求示例 - XMLHttpRequest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            color: #1a1a2e;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-body p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .btn-primary {
+            background: #4a90d9;
+            color: #fff;
+        }
+        .btn-success {
+            background: #52c41a;
+            color: #fff;
+        }
+        .btn-warning {
+            background: #faad14;
+            color: #fff;
+        }
+        .btn-danger {
+            background: #ff4d4f;
+            color: #fff;
+        }
+        .result-box {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            min-height: 60px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .result-box.loading {
+            color: #999;
+        }
+        .result-box.success {
+            border-color: #52c41a;
+            background: #f6ffed;
+        }
+        .result-box.error {
+            border-color: #ff4d4f;
+            background: #fff2f0;
+        }
+        .note-box {
+            background: #f9f0ff;
+            border: 1px solid #d3adf7;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #531dab;
+            line-height: 1.6;
+        }
+        .note-box strong {
+            color: #391085;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        .ready-state {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-top: 15px;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .ready-state code {
+            background: #e8e8e8;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>纯 Ajax 异步请求</h1>
+    <p class="subtitle">基于原生 XMLHttpRequest 实现，不依赖任何第三方库</p>
+
+    <div class="card">
+        <div class="card-header">
+            纯 Ajax（XMLHttpRequest）
+            <span class="status-badge">异步</span>
+        </div>
+        <div class="card-body">
+            <p>
+                使用浏览器原生 <code>XMLHttpRequest</code> 对象发起 HTTP 请求。
+                <strong>第三个参数 <code>true</code></strong> 表示异步模式，
+                发送请求后不会阻塞页面，通过 <code>onreadystatechange</code> 回调监听响应。
+            </p>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="pureGet()">GET 请求</button>
+                <button class="btn btn-success" onclick="purePost()">POST 请求</button>
+                <button class="btn btn-warning" onclick="pureGetWithParams()">GET 传参</button>
+                <button class="btn btn-danger" onclick="clearResult()">清空</button>
+            </div>
+
+            <div id="result" class="result-box">点击按钮查看结果...</div>
+
+            <div class="ready-state">
+                <strong>XMLHttpRequest.readyState 状态说明：</strong><br>
+                <code>0 - UNSENT</code> 请求未初始化（open() 未调用）<br>
+                <code>1 - OPENED</code> open() 已调用<br>
+                <code>2 - HEADERS_RECEIVED</code> 已收到响应头<br>
+                <code>3 - LOADING</code> 响应体下载中<br>
+                <code>4 - DONE</code> 请求完成（在此状态处理结果）
+            </div>
+        </div>
+    </div>
+
+    <div class="note-box">
+        <strong>关键点：</strong>
+        Ajax = <strong>A</strong>synchronous <strong>J</strong>avaScript <strong>a</strong>nd <strong>X</strong>ML。
+        <code>XMLHttpRequest</code> 第三个参数传 <code>true</code> 表示异步 —— 请求发出后立即返回，
+        不阻塞 UI 线程，数据返回后通过回调函数处理。如果传 <code>false</code> 则变成同步请求，会阻塞页面直到响应完成（不推荐使用）。
+    </div>
+
+    <div class="footer">
+        纯 Ajax 异步请求示例 &nbsp;|&nbsp; 使用 jsonplaceholder 模拟 API
+    </div>
+
+</div>
+
+<script>
+// ===================================================================
+// 纯 Ajax（XMLHttpRequest）异步请求
+// ===================================================================
+
+function getResultEl() {
+    return document.getElementById('result');
+}
+
+function setResult(state, text) {
+    var el = getResultEl();
+    el.className = 'result-box ' + state;
+    el.textContent = text;
+}
+
+/* --- GET 请求 --- */
+function pureGet() {
+    var xhr = new XMLHttpRequest();
+    setResult('loading', '正在请求数据...');
+
+    xhr.onreadystatechange = function () {
+        // readyState === 4 表示请求完成
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                setResult('success',
+                    'HTTP 状态码: ' + xhr.status +
+                    '\n响应数据:\n' + JSON.stringify(data, null, 2)
+                );
+            } else {
+                setResult('error', '请求失败! HTTP 状态码: ' + xhr.status);
+            }
+        }
+    };
+
+    // 网络级错误处理（断网、DNS 解析失败等）
+    xhr.onerror = function () {
+        setResult('error', '网络请求失败! 请检查网络连接。');
+    };
+
+    // true = 异步（不阻塞页面），false = 同步（会阻塞页面）
+    xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts/1', true);
+    xhr.send();
+}
+
+/* --- POST 请求 --- */
+function purePost() {
+    var xhr = new XMLHttpRequest();
+    setResult('loading', '正在提交数据...');
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 201) {
+                var data = JSON.parse(xhr.responseText);
+                setResult('success',
+                    'HTTP 状态码: ' + xhr.status + ' (Created)' +
+                    '\n创建成功! 分配 ID: ' + data.id +
+                    '\n完整响应:\n' + JSON.stringify(data, null, 2)
+                );
+            } else {
+                setResult('error', '请求失败! HTTP 状态码: ' + xhr.status);
+            }
+        }
+    };
+
+    xhr.open('POST', 'https://jsonplaceholder.typicode.com/posts', true);
+
+    // 设置请求头，告知服务器发送的是 JSON 格式数据
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    // 发送 JSON 字符串
+    xhr.send(JSON.stringify({
+        title: '纯 Ajax 示例',
+        body: '这是通过 XMLHttpRequest 发送的数据',
+        userId: 1
+    }));
+}
+
+/* --- GET 请求带查询参数 --- */
+function pureGetWithParams() {
+    var xhr = new XMLHttpRequest();
+    setResult('loading', '正在请求数据...');
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                setResult('success',
+                    'HTTP 状态码: ' + xhr.status +
+                    '\n获取到 ' + data.length + ' 条数据' +
+                    '\n第一条:\n' + JSON.stringify(data[0], null, 2)
+                );
+            } else {
+                setResult('error', '请求失败! HTTP 状态码: ' + xhr.status);
+            }
+        }
+    };
+
+    // 参数直接拼接在 URL 上
+    xhr.open('GET', 'https://jsonplaceholder.typicode.com/posts?userId=1&_limit=3', true);
+    xhr.send();
+}
+
+/* --- 清空结果 --- */
+function clearResult() {
+    var el = getResultEl();
+    el.className = 'result-box';
+    el.textContent = '已清空，点击按钮重新请求...';
+}
+</script>
+
+</body>
+</html>
