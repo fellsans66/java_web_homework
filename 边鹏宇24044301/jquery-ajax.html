@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery Ajax 异步请求示例</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            color: #1a1a2e;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-body p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .btn-purple {
+            background: #722ed1;
+            color: #fff;
+        }
+        .btn-pink {
+            background: #eb2f96;
+            color: #fff;
+        }
+        .btn-warning {
+            background: #faad14;
+            color: #fff;
+        }
+        .btn-danger {
+            background: #ff4d4f;
+            color: #fff;
+        }
+        .btn-info {
+            background: #1890ff;
+            color: #fff;
+        }
+        .result-box {
+            background: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            min-height: 60px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .result-box.loading {
+            color: #999;
+        }
+        .result-box.success {
+            border-color: #52c41a;
+            background: #f6ffed;
+        }
+        .result-box.error {
+            border-color: #ff4d4f;
+            background: #fff2f0;
+        }
+        .note-box {
+            background: #fff0f6;
+            border: 1px solid #ffadd2;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #c41d7f;
+            line-height: 1.6;
+        }
+        .note-box strong {
+            color: #9e1068;
+        }
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        .api-table th,
+        .api-table td {
+            border: 1px solid #e8e8e8;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .api-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #555;
+        }
+        .api-table code {
+            background: #f0f0f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>jQuery Ajax 异步请求</h1>
+    <p class="subtitle">基于 jQuery 封装的 Ajax API，代码更简洁、功能更强大</p>
+
+    <div class="card">
+        <div class="card-header">
+            jQuery Ajax
+            <span class="status-badge">异步</span>
+        </div>
+        <div class="card-body">
+            <p>
+                jQuery 提供了 <code>$.ajax()</code>、<code>$.get()</code>、<code>$.post()</code> 等便捷方法，
+                自动处理 JSON 解析、跨浏览器兼容、错误回调等，极大简化 Ajax 编码。
+            </p>
+
+            <div class="btn-group">
+                <button class="btn btn-purple" onclick="jqGet()">$.get()</button>
+                <button class="btn btn-pink" onclick="jqPost()">$.post()</button>
+                <button class="btn btn-warning" onclick="jqAjaxCustom()">$.ajax() 自定义</button>
+                <button class="btn btn-info" onclick="jqGetJSON()">$.getJSON()</button>
+                <button class="btn btn-danger" onclick="clearResult()">清空</button>
+            </div>
+
+            <div id="result" class="result-box">点击按钮查看结果...</div>
+
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>说明</th>
+                        <th>典型场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>$.get(url, data, callback)</code></td>
+                        <td>简化 GET 请求</td>
+                        <td>获取数据</td>
+                    </tr>
+                    <tr>
+                        <td><code>$.post(url, data, callback)</code></td>
+                        <td>简化 POST 请求</td>
+                        <td>提交表单 / 创建资源</td>
+                    </tr>
+                    <tr>
+                        <td><code>$.getJSON(url, data, callback)</code></td>
+                        <td>GET 请求并自动解析 JSON</td>
+                        <td>获取 JSON 数据</td>
+                    </tr>
+                    <tr>
+                        <td><code>$.ajax({ options })</code></td>
+                        <td>完全自定义 Ajax 请求</td>
+                        <td>需要精细控制时</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="note-box">
+        <strong>jQuery Ajax 优势：</strong>
+        <code>$.ajax()</code> 支持丰富的配置项：<code>timeout</code> 超时控制、<code>beforeSend</code> 请求前回调、
+        <code>complete</code> 完成回调（无论成功失败）、<code>dataType</code> 自动数据类型转换。
+        还支持 Promise 风格的 <code>.done()</code>、<code>.fail()</code>、<code>.always()</code> 链式调用。
+    </div>
+
+    <div class="footer">
+        jQuery Ajax 异步请求示例 &nbsp;|&nbsp; 使用 jsonplaceholder 模拟 API &nbsp;|&nbsp; 需要加载 jQuery 库
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+// ===================================================================
+// jQuery Ajax 异步请求
+// ===================================================================
+
+function getResultEl() {
+    return $('#result');
+}
+
+function setResult(state, text) {
+    getResultEl().removeClass().addClass('result-box ' + state).text(text);
+}
+
+/* --- $.get() 简化 GET 请求 --- */
+function jqGet() {
+    setResult('loading', '正在请求数据...');
+
+    $.get('https://jsonplaceholder.typicode.com/posts/1', function (data) {
+        // 成功回调 - data 已自动解析为 JSON 对象
+        setResult('success',
+            '请求方法: $.get()' +
+            '\nHTTP 状态码: 200' +
+            '\n响应数据:\n' + JSON.stringify(data, null, 2)
+        );
+    }).fail(function (jqXHR) {
+        setResult('error', '请求失败! HTTP 状态码: ' + jqXHR.status);
+    });
+}
+
+/* --- $.post() 简化 POST 请求 --- */
+function jqPost() {
+    setResult('loading', '正在提交数据...');
+
+    $.post(
+        'https://jsonplaceholder.typicode.com/posts',
+        {
+            title: 'jQuery Ajax 示例',
+            body: '这是通过 $.post() 发送的数据',
+            userId: 1
+        },
+        function (data) {
+            setResult('success',
+                '请求方法: $.post()' +
+                '\nHTTP 状态码: 201 (Created)' +
+                '\n创建成功! 分配 ID: ' + data.id +
+                '\n完整响应:\n' + JSON.stringify(data, null, 2)
+            );
+        }
+    ).fail(function (jqXHR) {
+        setResult('error', '请求失败! HTTP 状态码: ' + jqXHR.status);
+    });
+}
+
+/* --- $.ajax() 完全自定义配置 --- */
+function jqAjaxCustom() {
+    setResult('loading', '正在请求数据...');
+
+    $.ajax({
+        url: 'https://jsonplaceholder.typicode.com/posts',
+        type: 'GET',
+        data: { userId: 1, _limit: 3 },
+        dataType: 'json',
+        timeout: 5000,
+        beforeSend: function () {
+            console.log('请求即将发送...');
+        },
+        success: function (data, textStatus, jqXHR) {
+            setResult('success',
+                '请求方法: $.ajax() 自定义配置' +
+                '\nHTTP 状态码: ' + jqXHR.status +
+                '\n请求状态文本: ' + textStatus +
+                '\n获取到 ' + data.length + ' 条数据' +
+                '\n第一条:\n' + JSON.stringify(data[0], null, 2)
+            );
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            setResult('error',
+                '请求失败!' +
+                '\n状态: ' + textStatus +
+                '\n错误信息: ' + errorThrown
+            );
+        },
+        complete: function () {
+            console.log('请求已结束（无论成功或失败都会执行）');
+        }
+    });
+}
+
+/* --- $.getJSON() 获取 JSON 数据 --- */
+function jqGetJSON() {
+    setResult('loading', '正在请求数据...');
+
+    $.getJSON('https://jsonplaceholder.typicode.com/posts?userId=1&_limit=2', function (data) {
+        setResult('success',
+            '请求方法: $.getJSON()' +
+            '\n自动解析 JSON，获取到 ' + data.length + ' 条数据' +
+            '\n完整数据:\n' + JSON.stringify(data, null, 2)
+        );
+    }).fail(function (jqXHR) {
+        setResult('error', '请求失败! HTTP 状态码: ' + jqXHR.status);
+    });
+}
+
+/* --- 清空结果 --- */
+function clearResult() {
+    getResultEl().removeClass().addClass('result-box').text('已清空，点击按钮重新请求...');
+}
+</script>
+
+</body>
+</html>
